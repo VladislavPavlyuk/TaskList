@@ -1,4 +1,4 @@
 export interface TokenType {
-  token: string;
+  access: string;
   refresh: string;
 }
