@@ -1,18 +1,49 @@
-import {
-    FlatList,
-    Pressable,
-  StyleSheet,
-  Task,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import {useEffect, useState} from 'react';
+import {createTask, getTasks, updateTask} from '../api/tasksApi.ts'
+import {Task} from '../types/Task.ts';
 import TaskItem from "../components/TaskItem.tsx";
+import {Alert} from "react-native";
+import {useAuth} from "../context/AuthContext.tsx";
 
-const TaskScreen = ({task}: {task: Task}) => {
+const TaskScreen = () => {
+    const [tasks,setTasks] = useState<Task[]>([]);
+    const [title, setTitle] = useState<string>('');
+    const [description, setDescription] = useState<string>('');
+    const [loading, setLoading] = useState<boolean>(true);
+    const {accessToken, logout} = useAuth();
 
+    const loadTasks = async () => {
+        try {
+            setLoading(true);
+            const data = await getTasks(accessToken);
+            setTasks(data);
+        } catch (error) {
+            Alert.alert('Error','Task upload failed.');
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
+    }
 };
 
+useEffect(()) => {
+    //TODO move loadTasks here
+    loadTasks();
+});
+
+const handleAddTask = async (task: Task) => {
+    if (!title.trim()){
+        return;
+    }
+    try {
+        const task = await createTask(accessToken, title, description);
+        setTasks(prev =>[...prev, task]);
+        setTitle('');
+        setDescription('');
+    } catch (error) {
+        
+    }
+}
 return (
     <View style={styles.container}>
         <Text style={styles.header}>Tasl List</Text>
