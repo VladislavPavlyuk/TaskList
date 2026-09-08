@@ -132,13 +132,14 @@ export const createTask = async (
   return response.json();
 };
 
-export const updateTask = async (task: Task): Promise<Task> => {
-  const response = await authedFetch(`${API_URL}/tasks/${task.id}/`, {
+export const updateTask = async (
+  id: number,
+  patch: Partial<Pick<Task, 'title' | 'description' | 'completed'>>,
+): Promise<Task> => {
+  const response = await authedFetch(`${API_URL}/tasks/${id}/`, {
     method: 'PATCH',
     headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({
-      completed: task.completed,
-    }),
+    body: JSON.stringify(patch),
   });
   if (!response.ok) {
     throw new Error(await parseError(response, `HTTP ${response.status}`));

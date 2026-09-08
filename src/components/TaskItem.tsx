@@ -4,28 +4,30 @@ import {Task} from '../types/Task';
 interface Props {
   task: Task;
   onToggle: () => void;
+  onEdit: () => void;
   onDelete: () => void;
 }
 
-const TaskItem = ({task, onToggle, onDelete}: Props) => {
+const TaskItem = ({task, onToggle, onEdit, onDelete}: Props) => {
   return (
     <View style={styles.container}>
-      <Pressable style={styles.task} onPress={onToggle}>
-        <View style={[styles.checkbox, task.completed && styles.checkboxOn]}>
-          <Text style={styles.checkMark}>{task.completed ? '✓' : ''}</Text>
-        </View>
-        <View style={styles.textWrap}>
-          <Text
-            style={[styles.title, task.completed && styles.completed]}
-            numberOfLines={2}>
-            {task.title}
+      <Pressable
+        style={[styles.checkbox, task.completed && styles.checkboxOn]}
+        onPress={onToggle}
+        hitSlop={8}>
+        <Text style={styles.checkMark}>{task.completed ? '✓' : ''}</Text>
+      </Pressable>
+      <Pressable style={styles.task} onPress={onEdit}>
+        <Text
+          style={[styles.title, task.completed && styles.completed]}
+          numberOfLines={2}>
+          {task.title}
+        </Text>
+        {task.description ? (
+          <Text style={styles.description} numberOfLines={2}>
+            {task.description}
           </Text>
-          {task.description ? (
-            <Text style={styles.description} numberOfLines={2}>
-              {task.description}
-            </Text>
-          ) : null}
-        </View>
+        ) : null}
       </Pressable>
       <Pressable onPress={onDelete} hitSlop={8}>
         <Text style={styles.deleteText}>✕</Text>
@@ -52,8 +54,6 @@ const styles = StyleSheet.create({
   },
   task: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
   },
   checkbox: {
     width: 24,
@@ -72,9 +72,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '700',
     fontSize: 14,
-  },
-  textWrap: {
-    flex: 1,
   },
   title: {
     fontSize: 16,

@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {createTask, deleteTask, getTasks, updateTask} from '../api/tasksApi';
+import {EditTaskModal} from '../components/EditTaskModal';
 import TaskItem from '../components/TaskItem';
 import {useAuth} from '../context/AuthContext';
 import {Task} from '../types/Task';
@@ -21,6 +22,7 @@ const TasksScreen = () => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState<Task | null>(null);
   const {logout} = useAuth();
 
   const loadTasks = useCallback(async () => {
@@ -63,12 +65,34 @@ const TasksScreen = () => {
     const next = {...task, completed: !task.completed};
     setTasks(prev => prev.map(item => (item.id === task.id ? next : item)));
     try {
-      const updated = await updateTask(next);
+      const updated = await updateTask(task.id, {completed: next.completed});
       setTasks(prev =>
         prev.map(item => (item.id === task.id ? updated : item)),
       );
     } catch (error) {
       setTasks(prev => prev.map(item => (item.id === task.id ? task : item)));
+      Alert.alert(
+        'Error',
+        error instanceof Error ? error.message : 'Update failed',
+      );
+    }
+  };
+
+  const handleEditSave = async (nextTitle: string, nextDescription: string) => {
+    if (!editing) {
+      return;
+    }
+    const current = editing;
+    try {
+      const updated = await updateTask(current.id, {
+        title: nextTitle,
+        description: nextDescription,
+      });
+      setTasks(prev =>
+        prev.map(item => (item.id === current.id ? updated : item)),
+      );
+      setEditing(null);
+    } catch (error) {
       Alert.alert(
         'Error',
         error instanceof Error ? error.message : 'Update failed',
@@ -125,6 +149,7 @@ const TasksScreen = () => {
             <TaskItem
               task={item}
               onToggle={() => handleToggle(item)}
+              onEdit={() => setEditing(item)}
               onDelete={() => handleDelete(item)}
             />
           )}
@@ -138,6 +163,11 @@ const TasksScreen = () => {
         onPress={() => void handleAddTask()}>
         <Text style={styles.fabText}>+</Text>
       </Pressable>
+      <EditTaskModal
+        task={editing}
+        onClose={() => setEditing(null)}
+        onSave={handleEditSave}
+      />
     </View>
   );
 };
